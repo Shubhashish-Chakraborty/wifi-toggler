@@ -1,10 +1,36 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import axios from 'axios';
+import { BACKEND_URL } from '../config';
 
 export const Toggle = () => {
     const [isChecked, setIsChecked] = useState(false);
 
-    const handleCheckboxChange = () => {
-        setIsChecked(!isChecked);
+    // Fetch the initial status from the backend
+    useEffect(() => {
+        const fetchStatus = async () => {
+            try {
+                const response = await axios.get(`${BACKEND_URL}/status`);
+                setIsChecked(response.data.isOn);
+            } catch (error) {
+                console.error('Error fetching WiFi status:', error);
+            }
+        };
+        fetchStatus();
+    }, []);
+
+    // Handle toggle switch change
+    const handleCheckboxChange = async () => {
+        const newStatus = !isChecked;
+        try {
+            if (newStatus) {
+                await axios.post(`${BACKEND_URL}/on`);
+            } else {
+                await axios.post(`${BACKEND_URL}/off`);
+            }
+            setIsChecked(newStatus);
+        } catch (error) {
+            console.error('Error updating WiFi status:', error);
+        }
     };
 
     return (
